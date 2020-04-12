@@ -1,12 +1,57 @@
-const express = require('express')
+const Express = require('express');
 require('dotenv').config()
+const Webhook = require('coinbase-commerce-node').Webhook;
 
-const app = express()
-const port = 3000
+/**
+ * Past your webhook secret from Settings/Webhook section
+ */
+const webhookSecret =  process.env.COINBASE_COMMERCE_SECRET;
+const router = Express.Router();
+const app = Express();
 
-//Coinbase Commerce Seceret from environment varible
-COINBASE_COMMERCE_SECRET = process.env.COINBASE_COMMERCE_SECRET
+function rawBody(req, res, next) {
+	req.setEncoding('utf8');
 
-app.get('/', (req, res) => res.send('Webhook App!'))
+	let data = '';
 
-app.listen(port, () => console.log(`Webhook app listening at http://localhost:${port} with secrete code of ${COINBASE_COMMERCE_SECRET}`))
+	req.on('data', function (chunk) {
+		data += chunk;
+	});
+
+	req.on('end', function () {
+		req.rawBody = data;
+
+		next();
+	});
+}
+
+router.post('/payment_webhook', function (request, response) {
+	let event;
+
+	console.log(request.headers);
+
+	try {
+		event = Webhook.verifyEventBody(
+			request.rawBody,
+			request.headers['x-cc-webhook-signature'],
+			webhookSecret
+		);
+	} catch (error) {
+		console.log('Error occured', error.message);
+
+		return response.status(400).send('Webhook Error:' + error.message);
+	}
+
+    //1. Log the webhook event to the consle
+    console.log('Success', event);
+    //2. Make Network call to the backeend to send the webhook event paylod...
+
+	response.status(200).send('Signed Webhook Received: ' + event.id);
+});
+
+app.use(rawBody);
+app.use(router);
+
+app.listen(process.env.PORT, function () {
+	console.log(`Crypto Payment Webhook Service listening on port ${process.env.PORT}!`);
+});
