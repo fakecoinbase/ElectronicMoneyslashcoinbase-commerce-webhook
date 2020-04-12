@@ -60,31 +60,22 @@ router.post('/payment_webhook', function (request, response) {
 
     //2. Make Network call to the backeend to send the webhook event paylod...
     //The base uri
-    const CRYPTO_PAYMENT_BASE_URI = process.env.CRYPTO_PAYMENT_BASE_URI;
-
-   // Request without Api Token
-   const requests = axios.create({
-    baseURL: CRYPTO_PAYMENT_BASE_URI,
-    headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-    }
-    });
+    const CRYPTO_PAYMENT_URL = process.env.CRYPTO_PAYMENT_BASE_URI;
 
     // Post Data function
-   const postPaymentPayload =  async (url, data) => {
+   const postPaymentPayload =  async () => {
         // Make an API Call
         try {
             // Make an API Call
-            const response =  await requests.post(url, data);
-            return response.data;
+            const response =  await axios.post(CRYPTO_PAYMENT_URL, paymentPayload);
+            console.log(response.data);
         } catch(error) {
-            return error;
+            console.log(error);
         }
     }
 
     // Make the acutal network call
-    postPaymentPayload('/payment/webhook', paymentPayload);
+    postPaymentPayload();
 
 	response.status(200).send('Signed Webhook Received: ' + event.id);
 });
