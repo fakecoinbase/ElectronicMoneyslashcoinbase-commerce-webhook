@@ -26,7 +26,7 @@ function rawBody(req, res, next) {
 	});
 }
 
-router.post('/payment_webhook', function (request, response) {
+router.post('/', function (request, response) {
 	let event;
 
 	console.log(request.headers);
@@ -43,9 +43,6 @@ router.post('/payment_webhook', function (request, response) {
 		return response.status(400).send('Webhook Error:' + error.message);
 	}
 
-    //1. Log the webhook event to the consle
-    console.log('Success', event);
-
     // The Payment Payload Object
     const paymentPayload = {
         payment_reference_number: event.id,
@@ -60,7 +57,7 @@ router.post('/payment_webhook', function (request, response) {
 
     //2. Make Network call to the backeend to send the webhook event paylod...
     //The base uri
-    const CRYPTO_PAYMENT_URL = process.env.CRYPTO_PAYMENT_BASE_URI;
+    const CRYPTO_PAYMENT_URL = process.env.CRYPTO_PAYMENT_URL;
 
     // Post Data function
    const postPaymentPayload =  async () => {
